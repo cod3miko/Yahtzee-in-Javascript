@@ -1,0 +1,370 @@
+<!-- 
+	 Michael Shohdy 	 
+     Course: 443
+     Assignment: #2
+--> 
+
+<html>
+<head><title>Yahtzee</title></head>
+<body>
+
+<script language="Javascript">
+<!--
+
+var dice = new Array();
+var countRoll = 0;
+var countRound = 0;
+
+function rollDice() 
+{
+	countRoll++;
+	if(countRoll == 3)
+	{
+		document.getElementById("roll").disabled = true;
+	}
+	
+	// an if statement nested in a for loop that randomizes the die images (based on element name and id)
+	for(var i=0; i<document.getElementsByName("dieCheck").length; i++)
+	{
+		if(document.getElementById("dieCheck"+i).checked == false)
+		{
+			dice[i] = Math.floor(6*Math.random())+1;
+			document.getElementById("die"+i).src = "dice" + dice[i] + ".gif";
+		}
+	}
+}
+
+function changeDice()
+{
+	// change img src of dice to purple dice
+	for(i=0; i<document.getElementsByName("dieCheck").length; i++)
+	{
+		if(document.getElementById("dieCheck"+i).checked)
+		{
+			document.getElementById("die"+i).src = "diceX" + dice[i] + ".gif";
+		}
+		else
+		{
+			document.getElementById("die"+i).src = "dice" + dice[i] + ".gif";
+		}
+	}
+}
+
+function enterScore() 
+{
+	var subtotal = 0;
+	var total = 0;
+	var typeOfScore;
+	
+	//reseting
+	countRoll = 0;
+	
+	// to find out which scores have already been chosen
+	for(var i=0; i< document.getElementsByName("box").length;i++)
+	{
+		if(document.getElementById("box"+(i+1)).checked)
+		{
+			//disabling checkbox (i+1 to match box values)
+			document.getElementById("box"+(i+1)).disabled = true;
+			typeOfScore = document.getElementById("box"+(i+1)).value;
+			//type of score to equal the value for further use
+		}
+	}
+	
+	//subtotal the upper scores 1's-6's
+	for(i=0; i<6; i++)
+	{	
+		var parsedScore = parseInt(document.getElementById("score"+(i+1)).value);
+		if(isFinite(parsedScore))
+		{
+			subtotal += parsedScore;
+		}
+	}
+
+	//bonus
+	if(subtotal >= 63)
+	{
+		document.getElementById("bonus").value = 35;
+	}
+	
+	//put the score in the text box
+	document.getElementById("subtotal1").value = subtotal;
+	
+	//adding subtotal and bonus
+	document.getElementById("subtotal1").value = parseInt(document.getElementById("subtotal1").value) + parseInt(document.getElementById("bonus").value);
+	
+	//Subtotal the lower scores
+	subtotal = 0;
+	for(i=7; i<14; i++)
+	{	
+		parsedScore = parseInt(document.getElementById("score"+i).value);
+		if(isFinite(parsedScore))
+		{
+			subtotal += parsedScore;
+		}
+	}
+	
+	//putting the score in textbox
+	document.getElementById("subtotal2").value = subtotal;
+	
+	//add the subtotals
+	document.getElementById("total").value = parseInt(document.getElementById("subtotal1").value) + parseInt(document.getElementById("subtotal2").value);
+	
+	//!!IMPORTANT getscore fxn!!! total
+	total = getScore(typeOfScore);
+	//putting that score in the text box based on cases
+	document.getElementById("score" + typeOfScore).value = total;
+		
+	//prep next round after click
+	for(var i=0; i<document.getElementsByName("dieCheck").length; i++)
+	{
+		document.getElementById("dieCheck"+i).checked = false;
+	}
+		
+	//the end?
+	countRound++;
+	if(countRound == 13)
+	{
+		alert("good job man! your score is " + document.getElementById("total").value);
+	}
+	
+	//no? lets roll again
+	rollDice();
+	
+	document.getElementById("roll").disabled = false;
+}
+
+function getScore(typeOfScore)
+{		
+	var total = 0;
+	var sum = 0;
+	var frequency = new Array(0,0,0,0,0,0);
+	var allGood = false;
+
+	///for loop to be used in computing score types
+	for(i=0; i<dice.length; i++)
+	{
+		//how many times the die shows up
+		frequency[dice[i]-1]++;
+		//value of dice
+		sum += dice[i];
+	}
+	
+	//types of scores in cases
+	switch(parseInt(typeOfScore))
+	{
+		case 1: //1's
+			total = frequency[typeOfScore-1] * typeOfScore; //totaling only the specified dice
+			break;
+		case 2: //2's
+			total = frequency[typeOfScore-1] * typeOfScore;
+			break;
+		case 3: //3's
+			total = frequency[typeOfScore-1] * typeOfScore;
+			break;
+		case 4: //4's
+			total = frequency[typeOfScore-1] * typeOfScore;
+			break;
+		case 5: //5's
+			total = frequency[typeOfScore-1] * typeOfScore;
+			break;
+		case 6: //6's
+			total = frequency[typeOfScore-1] * typeOfScore;
+			break;
+		case 7: //three of a kind
+			for(var i=0; i<frequency.length; i++) {if(frequency[i] > 2) {allGood = true;} }
+			if(allGood){total = sum;} //total all the die faces and score that total
+			else{total = 0;}
+			break;
+		case 8: //four of a kind
+			for(i=0; i<frequency.length; i++) {if(frequency[i] > 3) {allGood = true;} }
+			if(allGood) {total = sum;} //total all the die faces and score that total
+			else{total = 0;}
+			break;
+		case 9: //full house - both a 3 of a kind and a pair
+			for(i=0; i<frequency.length; i++) {if(frequency[i] == 3) {for(var j=0; j<frequency.length; j++) {if(frequency[j] == 2){allGood = true;} } } }
+			if(allGood) {total = 25;}
+			else {total = 0;}
+			break;
+		case 10: //small straight 4 consecutive faces
+			for(i=0; i<3; i++) {if(frequency[i] >= 1 && frequency[i+1] >= 1 && frequency[i+2] >= 1 && frequency[i+3] >= 1){allGood = true;} }			
+			if(allGood){total = 30;}
+			else{total = 0;}
+			break;
+		case 11: //large straight 5 consecutive faces
+			for(i=0; i<2; i++) {if(frequency[i] == 1 && frequency[i+1] == 1 && frequency[i+2] == 1 && frequency[i+3] == 1 && frequency[i+4] == 1) {allGood = true;}}			
+			if(allGood) {total = 40;}
+			else {total = 0;}
+			break;
+		case 12: //yahtzee
+			for(i=0; i<frequency.length; i++) {if(frequency[i] > 4) {allGood = true;} } //if five of a kind
+			if(allGood) {total = 50;}
+			else{total = 0;}
+			break;
+		case 13: //chance
+			total = sum; //roll anything and total all the die faces values
+			break;
+	}		
+	return total;
+}
+
+function scoreShow(typeOfScore) 
+{	
+	//if the score is already taken dont show
+	if(document.getElementById("score" + typeOfScore).value != "")
+	{
+		return;
+	}
+	
+	//show possible score
+	var tempScore;
+	tempScore = getScore(typeOfScore);
+	document.getElementById("score" + typeOfScore).value = tempScore;
+}
+
+function scoreNoShow(typeOfScore) 
+{	
+	//on mouse out 
+	// if the box wasnt checked yet, dont display score val
+	if(document.getElementById("box" + typeOfScore).checked == false)
+	{
+		document.getElementById("score"+typeOfScore).value = "";
+	}
+}
+
+function newGame()
+{
+	// replae dice w dice0.gif
+	for(i=0; i<document.getElementsByName("dieCheck").length; i++)
+	{
+		document.getElementById("die"+i).src = "dice0.gif";
+	}
+
+	//clear everythang
+	for(i=1; i<14; i++)
+	{	
+		document.getElementById("score"+i).value = "";
+		document.getElementById("box"+i).checked = false;
+		document.getElementById("box"+i).disabled = false;
+	}
+	
+	//back to 0
+	document.getElementById("subtotal1").value=0;
+	document.getElementById("subtotal2").value=0;
+	document.getElementById("bonus").value=0;
+	document.getElementById("total").value=0;
+	
+	//reset completely
+	countRound = 0;
+	countRoll = 0;
+	
+	document.getElementById("roll").disabled = false;
+}
+//-->
+</script>
+
+
+<table border=1>
+<tr>
+<td> <img id="die0" src="dice0.gif"> <div align=center> <input id="dieCheck0" type="checkbox" name="dieCheck" onclick="changeDice()"></div></td>
+<td> <img id="die1" src="dice0.gif"> <div align=center> <input id="dieCheck1" type="checkbox" name="dieCheck" onclick="changeDice()"></div></td>
+<td> <img id="die2" src="dice0.gif"> <div align=center> <input id="dieCheck2" type="checkbox" name="dieCheck" onclick="changeDice()"></div></td>
+<td> <img id="die3" src="dice0.gif"> <div align=center> <input id="dieCheck3" type="checkbox" name="dieCheck" onclick="changeDice()"></div></td>
+<td> <img id="die4" src="dice0.gif"> <div align=center> <input id="dieCheck4" type="checkbox" name="dieCheck" onclick="changeDice()"></div></td>
+</tr>
+</table>
+
+
+<table>
+<tr>
+<td> <button id="roll" onclick="rollDice()">ROOOLLL!!!</button></td>
+</table>
+
+
+<table>
+<tr>
+<td> <input id="box1" type="checkbox" value="1" name="box" onclick = "enterScore()" onmouseover="scoreShow(1)" onmouseout="scoreNoShow(1)"></td>
+<td>1's</td> <td><input id="score1" readonly="readOnly" type="text" size="1"></td>
+</tr>
+<tr>
+<td> <input id="box2" type="checkbox" value="2" name="box" onclick = "enterScore()" onmouseover="scoreShow(2)" onmouseout="scoreNoShow(2)"></td>
+<td>2's</td> <td><input id="score2" readonly="readonly" type="text" size="1"></td>
+</tr>
+<tr>
+<td> <input id="box3" type="checkbox" value="3" name="box" onclick = "enterScore()" onmouseover="scoreShow(3)" onmouseout="scoreNoShow(3)"></td>
+<td>3's</td> <td><input id="score3" readonly="readonly" type="text" size="1"></td>
+</tr><tr>
+<td> <input id="box4" type="checkbox" value="4" name="box" onclick = "enterScore()" onmouseover="scoreShow(4)" onmouseout="scoreNoShow(4)"></td>
+<td>4's</td> <td><input id="score4" readonly="readonly" type="text" size="1"></td>
+</tr>
+<tr>
+<td> <input id="box5" type="checkbox" value="5" name="box" onclick = "enterScore()" onmouseover="scoreShow(5)" onmouseout="scoreNoShow(5)"></td>
+<td>5's</td> <td><input id="score5" readonly="readonly" type="text" size="1"></td>
+</tr>
+<tr>
+<td> <input id="box6" type="checkbox" value="6" name="box" onclick = "enterScore()" onmouseover="scoreShow(6)" onmouseout="scoreNoShow(6)"></td>
+<td>6's</td> <td><input id="score6" readonly="readonly" type="text" size="1"></td>
+</tr>
+</table>
+
+
+<table>
+<tr>
+<td>Bonus</td> <td><input id="bonus" readonly="readonly" type="text" size="1" value="0"></td>
+</tr>
+<tr>
+<td>Subtotal</td> <td><input id="subtotal1" readonly="readonly" type="text" size="1" value="0"></td>
+</tr>
+</table>
+
+
+<table>
+<tr>
+<td> <input id="box7" type="checkbox" value="7" name="box" onclick = "enterScore()" onmouseover="scoreShow(7)" onmouseout="scoreNoShow(7)"></td>
+<td>Three of a Kind</td> <td><input id="score7" readonly="readOnly" type="text" size="1"></td>
+</tr>
+<tr>
+<td> <input id="box8" type="checkbox" value="8" name="box" onclick = "enterScore()" onmouseover="scoreShow(8)" onmouseout="scoreNoShow(8)"></td>
+<td>Four of a Kind</td> <td><input id="score8" readonly="readonly" type="text" size="1"></td>
+</tr>
+<tr>
+<td> <input id="box9" type="checkbox" value="9" name="box" onclick = "enterScore()" onmouseover="scoreShow(9)" onmouseout="scoreNoShow(9)"></td>
+<td>Full House</td> <td><input id="score9" readonly="readonly" type="text" size="1"></td>
+</tr><tr>
+<td> <input id="box10" type="checkbox" value="10" name="box" onclick = "enterScore()" onmouseover="scoreShow(10)" onmouseout="scoreNoShow(10)"></td>
+<td>Small Straight</td> <td><input id="score10" readonly="readonly" type="text" size="1"></td>
+</tr>
+<tr>
+<td> <input id="box11" type="checkbox" value="11" name="box" onclick = "enterScore()" onmouseover="scoreShow(11)" onmouseout="scoreNoShow(11)"></td>
+<td>Large Straight</td> <td><input id="score11" readonly="readonly" type="text" size="1"></td>
+</tr>
+<tr>
+<td> <input id="box12" type="checkbox" value="12" name="box" onclick = "enterScore()" onmouseover="scoreShow(12)" onmouseout="scoreNoShow(12)"></td>
+<td>Yahtzee</td> <td><input id="score12" readonly="readonly" type="text" size="1"></td>
+</tr>
+<tr>
+<td> <input id="box13" type="checkbox" value="13" name="box" onclick = "enterScore()" onmouseover="scoreShow(13)" onmouseout="scoreNoShow(13)"></td>
+<td>Chance</td> <td><input id="score13" readonly="readonly" type="text" size="1"></td>
+</tr>
+</table>
+
+
+
+<table>
+<tr>
+<td>Subtotal</td> <td><input id="subtotal2" readonly="readonly" type="text" size="1" value="0"></td>
+</tr>
+<tr>
+<td>Total</td> <td><input id="total" readonly="readonly" type="text" size="1" value="0"></td>
+</tr>
+</table>
+
+<table border=1>
+<tr>
+<td> <button id="reset" onclick="newGame()">New Game</button></td>
+</tr>
+</table>
+
+
+</body>
+</html>
